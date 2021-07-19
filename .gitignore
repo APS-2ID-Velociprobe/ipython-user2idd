@@ -1,0 +1,21 @@
+db/
+history
+history.sqlite
+log/
+pid/
+security/
+*.pyc
+*.pyo
+*~
+mViewer.log
+
+# eclipse IDE
+.project
+.pydevproject
+.settings
+
+# NFS crud
+.nfs*
+
+# session logs
+.logs/
