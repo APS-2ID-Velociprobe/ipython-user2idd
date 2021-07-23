@@ -12,8 +12,6 @@ __all__ = """
 	xmotor
 	ymotor
 """.split()
-    # m1 m2 m3 m4
-    # tth th chi phi
 
 from ..session_logs import logger
 
