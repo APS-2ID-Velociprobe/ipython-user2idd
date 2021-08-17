@@ -11,6 +11,11 @@ __all__ = """
 	sm_theta       
 	xmotor
 	ymotor
+    soft_m4
+	soft_m5
+	pmac_m6
+	pmac_m7
+	pmac_m8
 """.split()
 
 from ..session_logs import logger
@@ -43,3 +48,27 @@ sm_theta = EpicsMotor("2iddVELO:m10", name="sm_theta", labels=("motor",))
 # used in spiral scan
 xmotor = EpicsMotor("2iddVELO:m1", name="xmotor", labels=("motor",))
 ymotor = EpicsMotor("2iddVELO:m2", name="ymotor", labels=("motor",))
+
+# Other motors
+# 2iddf:sm4.VAL
+#EpicsMotor("2iddf:sm4", name="sm4", labels=("motor",))
+
+# 2iddf:sm5.VAL
+#EpicsMotor("2iddf:sm5", name="sm5", labels=("motor",))
+
+# 2iddf:sm4.RBV
+soft_m4 = EpicsMotor("2iddf:sm4", name="sm4", labels=("motor",))
+
+# 2iddf:sm5.RBV --> 
+soft_m5 = EpicsMotor("2iddf:sm5", name="sm5", labels=("motor",))
+
+# 2iddTAU:pmac1:m6.RBV
+pmac_m6 = EpicsMotor("2iddTAU:pmac1:m6", name="pmac_m6", labels=("motor",))
+
+# 2iddTAU:pmac1:m7.RBV
+pmac_m7 = EpicsMotor("2iddTAU:pmac1:m7", name="pmac_m7", labels=("motor",))
+
+# 2iddTAU:pmac1:m8.RBV
+pmac_m8 = EpicsMotor("2iddTAU:pmac1:m8", name="pmac_m8", labels=("motor",))
+
+

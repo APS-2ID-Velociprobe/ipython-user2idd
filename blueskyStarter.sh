@@ -15,3 +15,5 @@ export OPTIONS="${OPTIONS} --InteractiveShellApp.hide_initial_ns=False"
 
 source ${CONDA_ACTIVATE} ${CONDA_ENVIRONMENT}
 ipython ${OPTIONS}
+
+cd ~

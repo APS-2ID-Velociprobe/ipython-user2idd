@@ -39,14 +39,22 @@ scaler1f = ScalerCH("2iddf:scaler1", name="scaler1f", labels=["scalers", "detect
 # scint = scaler1.channels.chan03.s
 # diode = scaler1.channels.chan04.s
 
+# 2idd:scaler1_cts1.C
 s3 = scaler1.channels.chan03.s
+# 2idd:scaler1_cts1.D
 s4 = scaler1.channels.chan04.s
+# 2idd:scaler1_cts2.A
 s5 = scaler1.channels.chan05.s
 
+# 2iddf:scaler1_cts1.B
 s2f = scaler1f.channels.chan02.s
+# 2iddf:scaler1_cts1.C
 s3f = scaler1f.channels.chan03.s
+# 2iddf:scaler1_cts1.D
 s4f = scaler1f.channels.chan04.s
+# 2iddf:scaler1_cts2.A
 s5f = scaler1f.channels.chan05.s
+# 2iddf:scaler1_cts2.C
 s7f = scaler1f.channels.chan07.s
 
 # for item in (timebase, I0, scint, diode):

@@ -8,6 +8,7 @@ security/
 *.pyo
 *~
 mViewer.log
+*.dat
 
 # eclipse IDE
 .project

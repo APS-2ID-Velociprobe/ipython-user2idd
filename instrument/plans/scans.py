@@ -21,6 +21,8 @@ def VPstepScan(x, y, thickness_mm, title, md=None):
 	'''
 	[angle, X-pos, Y-pos, Z-pos, X-width, Y-width, X-step-um, Y-step-um, frequency]
 	'''
+	pass
+
 
 #TODO
 def VPspiralScan(xmotor='2iddVELO:m1', xLow=-1.0, xHigh=1.0, sepDist=.04
