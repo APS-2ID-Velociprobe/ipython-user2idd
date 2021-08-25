@@ -21,9 +21,9 @@ from ..session_logs import logger
 logger.info(__file__)
 
 #EIGER_FILES_ROOT = '/local/home/dpuser/test_gilberto/'
-EIGER_FILES_ROOT = '/home/beams/USER2IDD/test_bluesky_data/eiger/'
+EIGER_FILES_ROOT = '/local/home/dpuser/data2/velociprobe/2021-2/test_bluesky/'
 #BLUESKY_FILES_ROOT = '/home/beams17/POLAR/data/gilberto/test_gilberto/'
-BLUESKY_FILES_ROOT = '/home/beams/USER2IDD/test_bluesky_data/'
+BLUESKY_FILES_ROOT = '/mnt/micdata2/velociprobe/2021-2/test_bluesky/'
 
 
 # EigerDetectorCam inherits FileBase, which contains a few PVs that were
@@ -313,7 +313,7 @@ class LocalEigerDetector(LocalTrigger, DetectorBase):
         self.cam.wait_for_plugins.put("Yes")
         self.cam.create_directory.put(-1)
         self.cam.fw_compression.put("Enable")
-        self.cam.fw_num_images_per_file.put(1)
+        self.cam.fw_num_images_per_file.put(10000)
         self.file.enable.put(True)
         self.setup_manual_trigger()
         self.save_images_off()

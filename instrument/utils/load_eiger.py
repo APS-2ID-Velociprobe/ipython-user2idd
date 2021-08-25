@@ -8,7 +8,7 @@ logger.info(__file__)
 __all__ = ['load_eiger']
 
 
-def load_eiger(pv="dp_eiger_xrd91:"):
+def load_eiger(pv="dp_eiger_xrd92:"):
 
     print("-- Loading Eiger detector --")
     eiger = LocalEigerDetector(pv, name="eiger")
