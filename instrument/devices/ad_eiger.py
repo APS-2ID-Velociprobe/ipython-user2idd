@@ -20,11 +20,9 @@ from os.path import join, isdir
 from ..session_logs import logger
 logger.info(__file__)
 
-#EIGER_FILES_ROOT = '/local/home/dpuser/test_gilberto/'
-EIGER_FILES_ROOT = '/local/home/dpuser/data2/velociprobe/2021-2/test_bluesky/'
-#BLUESKY_FILES_ROOT = '/home/beams17/POLAR/data/gilberto/test_gilberto/'
-BLUESKY_FILES_ROOT = '/mnt/micdata2/velociprobe/2021-2/test_bluesky/'
-
+EIGER_FILES_ROOT = '/local/home/dpuser/data2/velociprobe'
+BLUESKY_FILES_ROOT = '/mnt/micdata2/velociprobe'
+IMAGE_DIR = '%Y/%m/%d/'
 
 # EigerDetectorCam inherits FileBase, which contains a few PVs that were
 # removed from AD after V22: file_number_sync, file_number_write,
@@ -190,8 +188,8 @@ class LocalEigerDetector(LocalTrigger, DetectorBase):
 
     file = Component(
         EigerSimulatedFilePlugin, suffix='cam1:',
-        write_path_template=EIGER_FILES_ROOT,
-        read_path_template=BLUESKY_FILES_ROOT,
+        write_path_template=join(EIGER_FILES_ROOT,IMAGE_DIR)
+        read_path_template=join(BLUESKY_FILES_ROOT,IMAGE_DIR)
         # root='/nsls2/xf11id1/'
     )
 
