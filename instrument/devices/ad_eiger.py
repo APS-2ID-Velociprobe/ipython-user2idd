@@ -188,7 +188,7 @@ class LocalEigerDetector(LocalTrigger, DetectorBase):
 
     file = Component(
         EigerSimulatedFilePlugin, suffix='cam1:',
-        write_path_template=join(EIGER_FILES_ROOT,IMAGE_DIR)
+        write_path_template=join(EIGER_FILES_ROOT,IMAGE_DIR),
         read_path_template=join(BLUESKY_FILES_ROOT,IMAGE_DIR)
         # root='/nsls2/xf11id1/'
     )
