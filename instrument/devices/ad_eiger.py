@@ -22,19 +22,23 @@ logger.info(__file__)
 
 EIGER_FILES_ROOT = '/local/home/dpuser/data2/velociprobe'
 BLUESKY_FILES_ROOT = '/mnt/micdata2/velociprobe'
-IMAGE_DIR = '%Y/%m/%d/'
+#IMAGE_DIR = '%Y/%m/%d/'
+IMAGE_DIR = '2021-2/test_bluesky'
+
 
 # EigerDetectorCam inherits FileBase, which contains a few PVs that were
 # removed from AD after V22: file_number_sync, file_number_write,
 # pool_max_buffers.
 class LocalEigerCam(EigerDetectorCam):
-    file_number_sync = None
-    file_number_write = None
-    pool_max_buffers = None
+    
+	file_number_sync = None
+	file_number_write = None
+	pool_max_buffers = None
+#	fw_clear = None
 
-    wait_for_plugins = ADComponent(EpicsSignal, 'WaitForPlugins', string=True)
-    file_path = ADComponent(EpicsSignal, 'FilePath', string=True)
-    create_directory = ADComponent(EpicsSignal, "CreateDirectory")
+	wait_for_plugins = ADComponent(EpicsSignal, 'WaitForPlugins', string=True)
+	file_path = ADComponent(EpicsSignal, 'FilePath', string=True)
+	create_directory = ADComponent(EpicsSignal, "CreateDirectory")
 
 
 class LocalTrigger(TriggerBase):
@@ -86,7 +90,7 @@ class LocalTrigger(TriggerBase):
         )
         # This has to be here to ensure it happens after stopping the
         # acquisition.
-        self.save_images_off()
+        #self.save_images_off()
 
     def trigger(self):
         "Trigger one acquisition."
@@ -235,6 +239,13 @@ class LocalEigerDetector(LocalTrigger, DetectorBase):
             "file_number_sync",  # Removed from EPICS
             "file_number_write",  # Removed from EPICS
             "pool_max_buffers",  # Removed from EPICS
+            # Following were removed for Eiger X 500
+			"fw_clear",	
+			"link_0",
+			"link_1",
+			"link_2",
+			"link_3",
+			"dcu_buff_free",
             # all below are numpy.ndarray
             "configuration_names",
             "stream_hdr_appendix",
@@ -264,12 +275,11 @@ class LocalEigerDetector(LocalTrigger, DetectorBase):
             'ts_orientation',
             'histogram_x',
         )
-
         self.cam.configuration_attrs += [
             item for item in EigerDetectorCam.component_names if item not in
             _remove_from_config
         ]
-
+        
         self.cam.read_attrs += ["num_images_counter"]
 
         for name in self.component_names:
@@ -285,7 +295,7 @@ class LocalEigerDetector(LocalTrigger, DetectorBase):
 
     def save_images_on(self):
         def check_value(*, old_value, value, **kwargs):
-            "Return True when file writter is enabled"
+            "Return True when file writer is enabled"
             return value == "ready"
 
         self.cam.fw_enable.put("Enable")
@@ -295,7 +305,7 @@ class LocalEigerDetector(LocalTrigger, DetectorBase):
 
     def save_images_off(self):
         def check_value(*, old_value, value, **kwargs):
-            "Return True when file writter is enabled"
+            "Return True when file writer is disabled"
             return value == "disabled"
 
         self.cam.fw_enable.put("Disable")
@@ -312,6 +322,6 @@ class LocalEigerDetector(LocalTrigger, DetectorBase):
         self.cam.create_directory.put(-1)
         self.cam.fw_compression.put("Enable")
         self.cam.fw_num_images_per_file.put(10000)
-        self.file.enable.put(True)
+        self.file.enable.put(True)  #what is this?
         self.setup_manual_trigger()
-        self.save_images_off()
+        #self.save_images_off()

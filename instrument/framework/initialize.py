@@ -42,6 +42,9 @@ import databroker
 import ophyd
 import warnings
 
+from .eiger_handler import MyEigerHandler
+# from eiger_io.fs_handler_dask import EigerHandlerDask
+
 # convenience imports
 import bluesky.plans as bp
 import bluesky.plan_stubs as bps
@@ -82,7 +85,11 @@ callback_db = {}
 
 # Connect with our mongodb database
 # db = databroker.catalog["2id_Velociprobe"].v1
-db = databroker.catalog["2idd"].v1
+# db = databroker.catalog["2idd"].v1
+db = databroker.catalog["2idd"] # To support the eiger handler had to remove the .v1
+
+# Register the handler for EIGER files
+db.register_handler("AD_EIGER", MyEigerHandler, overwrite=True)
 
 # Subscribe metadatastore to documents.
 # If this is removed, data is not saved to metadatastore.
