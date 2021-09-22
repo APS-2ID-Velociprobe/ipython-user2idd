@@ -14,6 +14,13 @@ def unCenterCoords(center, width, stepSize):
 	"""
 	Takes user coordinates (center, width, stepSize) and transforms
 	to bluesky scan coordinates (start, stop, Nsteps)
+
+	args
+	----
+	center		: float of scan center
+	width		: float of scan width
+	stepSize	: float of step size
+
 	"""
 
 	Nsteps = math.ceil(width/stepSize) + 1
@@ -27,8 +34,10 @@ def unCenterCoords(center, width, stepSize):
 
 def path_length(x, y):
 	"""
-
-
+	args
+	----
+	x	: ndarray of x-coordinates of trajectory
+	y	: ndarray of y-coordinates of trajectory
 	"""
 	
 	xx = x-np.roll(x,1)
@@ -41,8 +50,19 @@ def path_length(x, y):
 
 def vogel_spiral(dr, x_radius, y_radius, factor, theta_0 = 137.508, polar = False):
 	"""
-
-
+	args
+	----
+	dr					: float of radius step
+	x_radius			: float of x_radius (half-width)
+	y_radius			: float of y_radius (half-height)
+	factor				: float of numer of turns per dr
+	
+	kwargs
+	------
+	theta_0 = 137.508	: float of angle (in degrees) between subsequent 
+						  points in fermat spiral
+	polar = False		: boolean to set output coordinate system: True -->
+						  polar (r, theta); False --> cartesian (x,y)
 	"""
 	diag = np.sqrt(x_radius**2+y_radius**2)
 	num_rings = int((1.5*diag/(dr/factor))**2)
@@ -65,8 +85,11 @@ def vogel_spiral(dr, x_radius, y_radius, factor, theta_0 = 137.508, polar = Fals
 
 def reorder_spiral_path(r, theta, dr): 
 	"""
-
-
+	args
+	----
+	r		: ndarray of radii in fermat trajectory
+	theta	: ndarray of angles in fermat trajectory
+	dr		: float of dr to use for "enforced" spiral
 	"""
 	
 	coords_n = np.floor(r/dr).astype(int)
@@ -95,8 +118,15 @@ def reorder_spiral_path(r, theta, dr):
 
 def snaked_spiral_path(r, theta, strips = 10, snakeXaxis = True): 
 	"""
+	args
+	----
+	r					: ndarray of radii in fermat trajectory
+	theta				: ndarray of angles in fermat trajectory
 
-
+	kwargs
+	------
+	strips = 10			: float of snake turns to make
+	snakeXaxis	= True	: boolean of whether to snake x or y axis
 	"""
 	
 	if snakeXaxis:
