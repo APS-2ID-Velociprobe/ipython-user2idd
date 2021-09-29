@@ -65,13 +65,16 @@ def vogel_spiral(dr, x_radius, y_radius, factor, theta_0 = 137.508, polar = Fals
 						  polar (r, theta); False --> cartesian (x,y)
 	"""
 	diag = np.sqrt(x_radius**2+y_radius**2)
-	num_rings = int((1.5*diag/(dr/factor))**2)
+	#num_rings = int((1.5*diag/(dr/factor))**2)
+	num_rings = int((1.5*diag/(dr/factor))**2)/4 #by JD
 
 	theta_rad = theta_0 * math.pi / 180.0
-	n = np.arange(num_rings)+1
+	#n = np.arange(num_rings)+1
+	n = np.arange(num_rings+1) #by JD
 
 	theta = theta_rad*n
-	r = dr*np.sqrt(n)
+	#r = dr*np.sqrt(n)  
+	r = dr/factor*np.sqrt(n)  #by JD
 	
 	if not polar:
 		x = r*np.cos(theta)

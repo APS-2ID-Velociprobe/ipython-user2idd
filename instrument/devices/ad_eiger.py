@@ -57,7 +57,8 @@ class LocalTrigger(TriggerBase):
 
     def setup_manual_trigger(self):
         # Stage signals
-        self.cam.stage_sigs["trigger_mode"] = "Internal Enable"
+        #self.cam.stage_sigs["trigger_mode"] = "Internal Enable"
+        self.cam.stage_sigs["trigger_mode"] = "Internal Series"
         self.cam.stage_sigs["manual_trigger"] = "Enable"
         self.cam.stage_sigs["num_images"] = 1
         self.cam.stage_sigs["num_exposures"] = 1
@@ -218,8 +219,9 @@ class LocalEigerDetector(LocalTrigger, DetectorBase):
         """Start detector in alignment mode"""
         self.save_images_off()
         set_and_wait(self.cam.manual_trigger, "Disable")
-        set_and_wait(self.cam.num_triggers, int(1e6))
-        set_and_wait(self.cam.trigger_mode, "Internal Enable")
+        set_and_wait(self.cam.num_triggers, int(2e4))
+        #set_and_wait(self.cam.trigger_mode, "Internal Enable")
+        set_and_wait(self.cam.trigger_mode, "Internal Series")
         set_and_wait(self.cam.trigger_exposure, time)
         set_and_wait(self.cam.acquire, 1)
 
@@ -321,7 +323,7 @@ class LocalEigerDetector(LocalTrigger, DetectorBase):
         self.cam.wait_for_plugins.put("Yes")
         self.cam.create_directory.put(-1)
         self.cam.fw_compression.put("Enable")
-        self.cam.fw_num_images_per_file.put(10000)
+        self.cam.fw_num_images_per_file.put(100)
         self.file.enable.put(True)  #what is this?
         self.setup_manual_trigger()
         #self.save_images_off()

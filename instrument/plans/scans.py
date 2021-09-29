@@ -3,12 +3,12 @@ user-facing scans
 """
 
 __all__ = """
-    VPstepScan
-    VPfermatSpiralStepScan
-    VPspiralStepScan
+	VPstepScan
+	VPfermatSpiralStepScan
+	VPspiralStepScan
 	VPcorrectedFermatSpiralStepScan
-    VPflyScan2d
-    VPflyScan3d
+	VPflyScan2d
+	VPflyScan3d
 """.split()
 
 from bluesky.plan_stubs import mv
@@ -20,6 +20,7 @@ from ..devices.motors import *
 import datetime
 import os
 import time
+import numpy as np
 
 def VPstepScan(det, outer_center, outer_width, outer_step_size,
 			   inner_center, inner_width, inner_step_size,
@@ -32,21 +33,21 @@ def VPstepScan(det, outer_center, outer_width, outer_step_size,
 	----
 	det					:	list of detectors to acquire at each step
 	outer_center		:	slow motor center position 
-    outer_width			:	slow motor window width
-    outer_step_size		:	slow motor step size
-    inner_center		:	fast motor center position
-    inner_width			:	fast motor window width
-    inner_step_size		:	fast motor step size
+	outer_width			:	slow motor window width
+	outer_step_size		:	slow motor step size
+	inner_center		:	fast motor center position
+	inner_width			:	fast motor window width
+	inner_step_size		:	fast motor step size
 			   
 	kwargs
 	------
 	outer_motor = sm_py	: 	Slow motor defaults to sm_py 
 	inner_motor = sm_px :	Fast motor defaults to sm_px
-    z_motor = sm_pz		:	Z stage defaults to sm_pz - only used if 
+	z_motor = sm_pz		:	Z stage defaults to sm_pz - only used if 
 							z_pos defined
-    z_pos = None		:	Z position for scan 
-    snake = True		:	"Snake'ing" the inner axis by default
-    md = None			:	dictionary of optional metadata passed onto 
+	z_pos = None		:	Z position for scan 
+	snake = True		:	"Snake'ing" the inner axis by default
+	md = None			:	dictionary of optional metadata passed onto 
 							grid_scan
 	'''
 	
@@ -62,7 +63,7 @@ def VPstepScan(det, outer_center, outer_width, outer_step_size,
 		
 	# grid_scan
 	yield from grid_scan(det, outer_motor, outer_start, outer_stop, outer_steps,
-							inner_start, inner_stop, inner_steps, 
+							inner_motor, inner_start, inner_stop, inner_steps, 
 							snake_axes = snake, md=None)
 
 	return
@@ -70,8 +71,8 @@ def VPstepScan(det, outer_center, outer_width, outer_step_size,
 
 def VPfermatSpiralStepScan(det, x_center, y_center, x_radius, y_radius,
 						delta_r, factor,
-						outer_motor = sm_py, 
-						inner_motor = sm_px, 
+						y_motor = sm_py, 
+						x_motor = sm_px, 
 						delta_ry = None, tilt = 0.0,
 						z_motor = sm_pz, z_pos = None, 
 						md=None):
@@ -80,11 +81,11 @@ def VPfermatSpiralStepScan(det, x_center, y_center, x_radius, y_radius,
 	----
 	det					:	list of detectors to acquire at each step
 	x_center			:	x stage center position 
-    y_center			:	y stage center position
-    x_radius			:	half-width in x-direction
-    y_radius			:	half-width in y-direction
-    delta_r				:	delta radius along x-direction
-    factor				:	radius is divided by factir
+	y_center			:	y stage center position
+	x_radius			:	half-width in x-direction
+	y_radius			:	half-width in y-direction
+	delta_r				:	delta radius along x-direction
+	factor				:	radius is divided by factir
 			   
 	kwargs
 	------
@@ -92,10 +93,10 @@ def VPfermatSpiralStepScan(det, x_center, y_center, x_radius, y_radius,
 	tilt = 0.0			:	tilt angle in radians
 	inner_motor = sm_px : 	inner stage defaults to sm_px 
 	outer_motor = sm_py :	outer stage defaults to sm_py
-    z_motor = sm_pz		:	Z stage defaults to sm_pz - only used if 
+	z_motor = sm_pz		:	Z stage defaults to sm_pz - only used if 
 							z_pos defined
-    z_pos = None		:	Z position for scan 
-    md = None			:	dictionary of optional metadata passed onto 
+	z_pos = None		:	Z position for scan 
+	md = None			:	dictionary of optional metadata passed onto 
 							grid_scan
 	'''
 
@@ -109,15 +110,15 @@ def VPfermatSpiralStepScan(det, x_center, y_center, x_radius, y_radius,
 	
 	# fermat_spiral_scan yield
 	yield from spiral_fermat(det, x_motor, y_motor, x_center, y_center,
-							 x_diameter, y_diameter, delta_r, dr_y = delta_ry,
+							 x_diameter, y_diameter, delta_r, factor=factor, dr_y = delta_ry,
 							 tilt = tilt, md = md)
 
 	return
 	
 def VPspiralStepScan(det, x_center, y_center, x_radius, y_radius,
 						delta_r, n_theta,
-						outer_motor = sm_py, 
-						inner_motor = sm_px, 
+						y_motor = sm_py, 
+						x_motor = sm_px, 
 						delta_ry = None, tilt = 0.0,
 						z_motor = sm_pz, z_pos = None, 
 						md=None):
@@ -126,11 +127,11 @@ def VPspiralStepScan(det, x_center, y_center, x_radius, y_radius,
 	----
 	det					:	list of detectors to acquire at each step
 	x_center			:	x stage center position 
-    y_center			:	y stage center position
-    x_radius			:	half-width in x-direction
-    y_radius			:	half-width in y-direction
-    delta_r				:	delta radius along x-direction
-    n_theta				:	number of theta steps
+	y_center			:	y stage center position
+	x_radius			:	half-width in x-direction
+	y_radius			:	half-width in y-direction
+	delta_r				:	delta radius along x-direction
+	n_theta				:	number of theta steps
 			   
 	kwargs
 	------
@@ -138,17 +139,17 @@ def VPspiralStepScan(det, x_center, y_center, x_radius, y_radius,
 	tilt = 0.0			:	tilt angle in radians
 	outer_motor = sm_px	: 	inner stage defaults to sm_px 
 	inner_motor = sm_py :	outer stage defaults to sm_py
-    z_motor = sm_pz		:	Z stage defaults to sm_pz - only used if 
+	z_motor = sm_pz		:	Z stage defaults to sm_pz - only used if 
 							z_pos defined
-    z_pos = None		:	Z position for scan 
-    md = None			:	dictionary of optional metadata passed onto 
+	z_pos = None		:	Z position for scan 
+	md = None			:	dictionary of optional metadata passed onto 
 							grid_scan
 	'''
 
 	x_diameter = x_radius * 2.0
 	y_diameter = y_radius * 2.0
 
-    
+	
 
 
 	if z_pos is not None:
@@ -166,30 +167,30 @@ def VPspiralStepScan(det, x_center, y_center, x_radius, y_radius,
 
 def VPcorrectedFermatSpiralStepScan(det, x_center, y_center, x_radius, y_radius,
 									delta_r,
-									outer_motor = sm_py, 
-									inner_motor = sm_px, 
+									y_motor = sm_py, 
+									x_motor = sm_px, 
 									z_motor = sm_pz, z_pos = None,
 									factor = 1,
 									rough_dr = 5,  
-									snaked = False, strips = 10, 
+									snaked = False, polar=True, strips = 10, 
 									md=None):
 	'''
 	args
 	----
 	det					:	list of detectors to acquire at each step
 	x_center			:	x stage center position 
-    y_center			:	y stage center position
-    x_radius			:	half-width in x-direction
-    y_radius			:	half-width in y-direction
-    delta_r				:	delta radius along both x-,y-directions
+	y_center			:	y stage center position
+	x_radius			:	half-width in x-direction
+	y_radius			:	half-width in y-direction
+	delta_r				:	delta radius along both x-,y-directions
  			   
 	kwargs
 	------
 	inner_motor = sm_px : 	inner stage defaults to sm_px 
 	outer_motor = sm_py :	outer stage defaults to sm_py
-    z_motor = sm_pz		:	Z stage defaults to sm_pz - only used if 
+	z_motor = sm_pz		:	Z stage defaults to sm_pz - only used if 
 							z_pos defined
-    z_pos = None		:	Z position for scan 
+	z_pos = None		:	Z position for scan 
 	factor = 1			:	Used in fermat spiral point calculation
 	rough_dr = 5		:	Used in forcing fermat spiral points into
 							spiral-like ordering. This faux spiral has
@@ -199,11 +200,11 @@ def VPcorrectedFermatSpiralStepScan(det, x_center, y_center, x_radius, y_radius,
 							that defined by the inner_motor
 	strips = 10			:	Used in forcing fermat spiral points into 
 							snake like ordering.  Number of outer_motor levels
-    md = None			:	dictionary of optional metadata passed onto 
+	md = None			:	dictionary of optional metadata passed onto 
 							grid_scan
 	'''
 
-	r, theta = vogel_spiral(delta_r, x_radius, y_radius, factor, theta_0 = 137.508, polar = True)
+	r, theta = vogel_spiral(delta_r, x_radius, y_radius, factor, theta_0 = 137.508, polar = polar)
 
 	if not snaked:
 		trajectory_pol = reorder_spiral_path(r, theta, rough_dr)
@@ -219,9 +220,27 @@ def VPcorrectedFermatSpiralStepScan(det, x_center, y_center, x_radius, y_radius,
 		yield from mv(x_motor, x_points[0], y_motor, y_points[0], z_motor, z_pos)
 	else:
 		yield from mv(x_motor, x_points[0], y_motor, y_points[0])
+
+
+	# For live plots need dimensions added to metadata, which doesn't occur 
+	# for list scans
 	
+	_md = {
+		   'extents': tuple([[x_center - x_radius*1.25, x_center + x_radius*1.25],
+							 [y_center - y_radius*1.25, y_center + y_radius*1.25]]),
+		   'hints': {},
+		   }
+	try:
+		dimensions = [(x_motor.hints['fields'], 'primary'),
+					  (y_motor.hints['fields'], 'primary')]
+	except (AttributeError, KeyError):
+		pass
+	else:
+		_md['hints'].update({'dimensions': dimensions})
+	_md.update(md or {})
+
 	# fermat_spiral_scan yield
-	yield from list_scan(det, x_motor, x_points, y_motor, y_points, md = md)
+	yield from list_scan(det, x_motor, x_points, y_motor, y_points, md = _md)
 
 	return
 
@@ -240,6 +259,6 @@ def VPflyScan2d(pos_X, pos_Y, thickness, scan_title, md=None):
 def VPflyScan3d(pos_X, pos_Y, thickness, scan_title, md=None):	
 	'''
 	scans [x-center(um) y-center.(um), z-position (um), x-width.(um)
-	      , y-width.(um), x-stepsize.(nm), Y-stepsize.(nm), Freq.(Hz)]
+		  , y-width.(um), x-stepsize.(nm), Y-stepsize.(nm), Freq.(Hz)]
 	'''
 	pass
