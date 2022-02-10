@@ -6,14 +6,16 @@ M. Wyman 2022-02-08
 
 from ophyd import Device, EpicsSignal, EpicsSignalRO
 from ophyd import Component as Cpt
+from ophyd.status import DeviceStatus
+
+import time
 import logging
-from ... import flyer #????
 
 __all__ = """
-	flyUserCalcEnable
-	scanUserCalcEnable
-	laserFrequency
-	vpFlyer
+    flyUserCalcEnable
+    scanUserCalcEnable
+    laserFrequency
+    vpFlyer
 """.split()
 
 
@@ -25,112 +27,104 @@ PUt in devices and will want to add to init: "from 2d_flyers import *"
 flyUserCalcEnable = EpicsSignal('2iddVELO:userCalcEnable.VAL')
 # step scan usercalc enable
 scanUserCalcEnable = EpicsSignal('2iddf:userCalcEnable.VAL')
-
-# Laser frequency
-laserFrequency = EpicsSignal('2iddVELO:afg:set_freq')
+# laser Frequency
+laserFrequency = EpicsSignal('2iddVELO:afg:set_freq', name = "laser_freq")
 
 '''
 Using https://github.com/APS-2BM-MIC/ipython-user2bmb/blob/e0e601c84f41163ce3f08d88cb24b7e66a0ca65c/profile_2bmb/startup/taxi_and_fly.ipynb
 as template
 '''
-
+pmac_monitor_PV = '2iddf:9440:1:bi_1.VAL' # != 1 not scanning, == 1 scanning
+pmac_mode_PV = '2iddTAU:pmac1:Motion_Program' # generally set to 5 for snake scans
+pmac_trigger_PV = '2iddTAU:pmac1:Calc_Motion_Cmd.PROC' # set to 1 to start
+eiger_acquisition_PV = 'dp_eiger_xrd91:cam1:Acquire'
+eiger_trigger_mode_PV = 'dp_eiger_xrd91:cam1:TriggerMode' # set to 0 for fly scans
+eiger_manual_trigger_PV = 'dp_eiger_xrd91:cam1:ManualTrigger' # set to 0 fly scans
+eiger_num_triggers_PV = 'dp_eiger_xrd91:cam1:NumTriggers' # set to 1 for fly scans
 
 
 
 class PmacEigerFlyer(Device):
 
-	def __init__(self, monitor_PV = '2iddf:9440:1:bi_1.VAL',
-				  mode_PV = '2iddTAU:pmac1:Motion_Program',
-				  trigger_PV = '2iddTAU:pmac1:Calc_Motion_Cmd.PROC',
-				  acquire_PV = 'dp_eiger_xrd91:cam1:Acquire' ):
+    monitor = Cpt(EpicsSignalRO, pmac_monitor_PV, name = "monitor")
+    scan_trigger = Cpt(EpicsSignal, pmac_trigger_PV, name = "scan_trigger")
+    scan_mode = Cpt(EpicsSignal, pmac_mode_PV, name = "scan_mode")
+    cam_acquire = Cpt(EpicsSignal,eiger_acquisition_PV, name = "cam_acquire")
+    cam_trigger_mode = Cpt(EpicsSignal,eiger_trigger_mode_PV, name = "cam_trigger_mode")
+    cam_manual_trigger = Cpt(EpicsSignal,eiger_manual_trigger_PV, name = "cam_manual_trigger")
+    cam_num_triggers = Cpt(EpicsSignal,eiger_num_triggers_PV, name = "cam_num_triggers")
 
-		super().__init__('', parent=None, **kwargs)
+
+    def __init__(self, *args, **kwargs  ):
+
+        super().__init__('', parent=None, **kwargs)
         self.complete_status = None
 
-		self.monitor_PV = monitor_PV
-		self.mode_PV = mode_PV
-		self.trigger_PV = trigger_PV
-		self.acquire_PV = acquire_PV
+        self.stage_sigs['scan_mode'] = 5
+        self.stage_sigs['cam_trigger_mode'] = 0
+        self.stage_sigs['cam_manual_trigger'] = 0
+        self.stage_sigs['cam_num_triggers'] = 1
 
-		self.monitor = EpicsSignalRO(self.monitor_PV) # != 1 not scanning, == 1 scanning
-		self.start_program = EpicsSignal(self.trigger_PV) # set to 1 to start
-		self.mode = EpicsSignal(self.mode_PV) # generally set to 5 for snake scans
-		self.cam_acquire = EpicsSignal(self.acquire_PV)
+    def kickoff(self):
+            """
+            Start this Flyer
+            """
+#           logger.info("kickoff()")
+            self.complete_status = DeviceStatus(self)
 
-#		self.stage_sigs[self.user_offset] = 5
+            #trigger system
+            #self.busy.put(BusyStatus.busy) -- from example
+            #send trigger to start_program
+            self.scan_trigger.put(1)
+            while(self.monitor.get() != 1):
+                print("waiting for pmac to begin", end="\r")
+                time.sleep(0.01)
+            print("\nPMAC has started---------")
 
-	def stage(self):
-        print('FLyscan staged.')
-        super().stage()
+            #send trigger to camera
+            self.cam_acquire.put(1)
 
-	def unstage(self):
-        print('Flyscan unstaged.')
-        super().unstage()
+            #add callback functions to set complete after fly scan trajectory
+            #and detector acquisition complete
+            def cb(*args, **kwargs):
+                    if self.monitor.get() and self.cam_acquire.get():
+                        self.complete_status._finished(success=True)
 
-	def kickoff(self):
-        	"""
-        	Start this Flyer
-       		 """
-        	logger.info("kickoff()")
-        	self.complete_status = DeviceStatus(self.busy)
+            self.monitor.subscribe(cb)
+            self.cam_acquire.subscribe(cb)
 
-			#trigger system
-        	#self.busy.put(BusyStatus.busy) -- from example
-			#send trigger to start_program
-			self.start_program.put(1)
-			while(self.monitor.get() != 1):
-				print("waiting for pmac to begin")
-				time.sleep(0.01)
-			#send trigger to camera
-			self.cam_acquire.put(1)
+            # set kickoff status to done
+            kickoff_status = DeviceStatus(self)
+            kickoff_status._finished(success=True)
+            return kickoff_status
 
-			#add callback functions to set complete after fly scan trajectory
-			#and detector acquisition complete
-        	def cb(*args, **kwargs):
-            		if self.monitor.get() AND !self.cam_acquire.get():
-                		self.complete_status._finished(success=True)
-
-        	self.monitor.subscribe(cb)
-			self.cam_acquire.subscribe(cb)
-
-			# set kickoff status to done
-        	kickoff_status = DeviceStatus(self)
-        	kickoff_status._finished(success=True)
-        	return kickoff_status
-
-	def complete(self):
-		"""
+    def complete(self):
+        """
         Wait for flying to be complete
         """
-        logger.info("complete(): " + str(self.complete_status))
-		print("Fly scan completed")
+#        logger.info("complete(): " + str(self.complete_status))
         return self.complete_status
 
-	def describe_collect(self):
-		"""
+    def describe_collect(self):
+        """
         Describe details for ``collect()`` method
         """
-        logger.info("describe_collect()")
+#        logger.info("describe_collect()")
         schema = {}
         # TODO: What will be returned?
         return {self.name: schema}
 
-	def collect(self):
-		"""
+    def collect(self):
+        """
         Start this Flyer
         """
-        logger.info("collect(): " + str(self.complete_status))
+#        logger.info("collect(): " + str(self.complete_status))
         self.complete_status = None
         # TODO: What will be yielded?
+        d = {}
+        
+        yield d
 
-#	def unstage():
 
-pmac_monitor_PV = '2iddf:9440:1:bi_1.VAL'
-pmac_mode_PV = '2iddTAU:pmac1:Motion_Program'
-pmac_trigger_PV = '2iddTAU:pmac1:Calc_Motion_Cmd.PROC'
-eiger_acquisition_PV = 'dp_eiger_xrd91:cam1:Acquire'
 
-vpFlyer = PmacEigerFlyer(monitor_PV = pmac_monitor_PV,
-						 mode_PV = pmac_mode_PV,
-						 trigger_PV = pmac_trigger_PV,
-						 acquire_PV = eiger_acquisition_PV)
+vpFlyer = PmacEigerFlyer(name = 'vpFlyer')

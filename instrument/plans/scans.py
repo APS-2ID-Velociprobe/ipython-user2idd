@@ -7,8 +7,6 @@ __all__ = """
 	VPfermatSpiralStepScan
 	VPspiralStepScan
 	VPcorrectedFermatSpiralStepScan
-	VPflyScan2d
-	VPflyScan3d
 """.split()
 
 from bluesky.plan_stubs import mv
@@ -247,18 +245,4 @@ def VPcorrectedFermatSpiralStepScan(det, x_center, y_center, x_radius, y_radius,
 
 
 
-#TODO	
-def VPflyScan2d(pos_X, pos_Y, thickness, scan_title, md=None):
-	'''
-	scans [x-center(um) y-center.(um), z-position (um), x-width.(um)
-	, y-width.(um), x-stepsize.(nm), Y-stepsize.(nm), Freq.(Hz)]
-	'''
-	pass
 
-#TODO		
-def VPflyScan3d(pos_X, pos_Y, thickness, scan_title, md=None):	
-	'''
-	scans [x-center(um) y-center.(um), z-position (um), x-width.(um)
-		  , y-width.(um), x-stepsize.(nm), Y-stepsize.(nm), Freq.(Hz)]
-	'''
-	pass
