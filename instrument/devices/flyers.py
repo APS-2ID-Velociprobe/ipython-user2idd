@@ -37,10 +37,10 @@ as template
 pmac_monitor_PV = '2iddf:9440:1:bi_1.VAL' # != 1 not scanning, == 1 scanning
 pmac_mode_PV = '2iddTAU:pmac1:Motion_Program' # generally set to 5 for snake scans
 pmac_trigger_PV = '2iddTAU:pmac1:Calc_Motion_Cmd.PROC' # set to 1 to start
-eiger_acquisition_PV = 'dp_eiger_xrd91:cam1:Acquire'
-eiger_trigger_mode_PV = 'dp_eiger_xrd91:cam1:TriggerMode' # set to 0 for fly scans
-eiger_manual_trigger_PV = 'dp_eiger_xrd91:cam1:ManualTrigger' # set to 0 fly scans
-eiger_num_triggers_PV = 'dp_eiger_xrd91:cam1:NumTriggers' # set to 1 for fly scans
+eiger_acquisition_PV = 'dp_eiger_xrd2:cam1:Acquire'
+eiger_trigger_mode_PV = 'dp_eiger_xrd2:cam1:TriggerMode' # set to 0 for fly scans
+eiger_manual_trigger_PV = 'dp_eiger_xrd2:cam1:ManualTrigger' # set to 0 fly scans
+eiger_num_triggers_PV = 'dp_eiger_xrd2:cam1:NumTriggers' # set to 1 for fly scans
 
 
 
@@ -60,7 +60,7 @@ class PmacEigerFlyer(Device):
         super().__init__('', parent=None, **kwargs)
         self.complete_status = None
 
-        self.stage_sigs['scan_mode'] = 5
+        self.stage_sigs['scan_mode'] = 0 # move to pre-scan (0-snake (default), 5-spiral, 7-lissajous)
         self.stage_sigs['cam_trigger_mode'] = 0
         self.stage_sigs['cam_manual_trigger'] = 0
         self.stage_sigs['cam_num_triggers'] = 1
@@ -87,11 +87,11 @@ class PmacEigerFlyer(Device):
             #add callback functions to set complete after fly scan trajectory
             #and detector acquisition complete
             def cb(*args, **kwargs):
-                    if self.monitor.get() and self.cam_acquire.get():
+                    if not self.monitor.get(): #and self.cam_acquire.get():
                         self.complete_status._finished(success=True)
 
             self.monitor.subscribe(cb)
-            self.cam_acquire.subscribe(cb)
+#            self.cam_acquire.subscribe(cb)
 
             # set kickoff status to done
             kickoff_status = DeviceStatus(self)
@@ -118,7 +118,8 @@ class PmacEigerFlyer(Device):
         """
         Start this Flyer
         """
-#        logger.info("collect(): " + str(self.complete_status))
+        # logger.info("collect(): " + str(self.complete_status))
+        self.cam_acquire.put(0)
         self.complete_status = None
         # TODO: What will be yielded?
         d = {}

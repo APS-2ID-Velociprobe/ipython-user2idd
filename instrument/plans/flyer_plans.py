@@ -1,6 +1,6 @@
 import bluesky.plans as bp
-from bluesky.plan_stubs import mv
-from bluesky.preprocessors import fly_during_wrapper
+import bluesky.plan_stubs as bps
+import bluesky.preprocessors as bpp
 from ..utils.trajectory_tools import unCenterCoords
 from ..devices.motors import *
 
@@ -82,13 +82,13 @@ def VPFlyScan2d(vpFlyer, x_center, x_width, x_step_size,
     #Eiger setup
 
     #what setup needs done? Eiger settings; pmac settings;
-    laserFrequency.put(trig_freq)
+    laserFrequency.put(trig_freq) # move to staging (stage_sigs)
 
     # move to start
     if z_pos is not None:
-        yield from mv(x_motor, x_start, y_motor, y_start, z_motor, z_pos)
+        yield from bps.mv(x_motor, x_start, y_motor, y_start, z_motor, z_pos)
     else:
-        yield from mv(x_motor, x_start, y_motor, y_start)
+        yield from bps.mv(x_motor, x_start, y_motor, y_start)
 
 # Added commented-out code in case needed for callbacks. This version was used
 # in VPcorrectedFermatSpiralStepScan
@@ -102,10 +102,10 @@ def VPFlyScan2d(vpFlyer, x_center, x_width, x_step_size,
 #       dimensions = [(x_motor.hints['fields'], 'primary'),
 #                     (y_motor.hints['fields'], 'primary')]
 #   except (AttributeError, KeyError):
-#       pass
 #   else:
 #       _md['hints'].update({'dimensions': dimensions})
     _md.update(md or {})
+#       pass
 
     yield from staged_fly([vpFlyer], md = _md)
 

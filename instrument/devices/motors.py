@@ -38,6 +38,7 @@ from ophyd import EpicsMotor
 sm_px = EpicsMotor("2iddTAU:pmac1:M16", name="sm_px", labels=("motor",))
 sm_py = EpicsMotor("2iddTAU:pmac1:M15", name="sm_py", labels=("motor",))
 sm_pz = EpicsMotor("2iddVELO:m9", name="sm_pz", labels=("motor",))
+#zp_px= EpicsMotor("2iddf:sm7.VAL", name="zp_px", labels=("motor",))
 
 # commented out in 2-d step scan	
 # sm_theta = EpicsMotor("2iddf:m3", name="sm_theta", labels=("motor",))
