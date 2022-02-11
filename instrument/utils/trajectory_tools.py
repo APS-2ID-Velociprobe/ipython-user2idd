@@ -23,7 +23,7 @@ def unCenterCoords(center, width, stepSize):
 
 	"""
 
-	Nsteps = math.ceil(width/stepSize) + 1
+	Nsteps = math.ceil(abs(width/stepSize)) + 1
 	start = center-Nsteps/2.0*stepSize
 	stop = center+Nsteps/2.0*stepSize
 	
