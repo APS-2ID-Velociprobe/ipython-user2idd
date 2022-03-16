@@ -15,8 +15,10 @@ __all__ = """
     flyUserCalcEnable
     scanUserCalcEnable
     laserFrequency
-	triggerFrequency
+    triggerFrequency
 """.split()
+
+logger = logging.getLogger()
 
 # fly scan usercalc enable
 flyUserCalcEnable = EpicsSignal('2iddVELO:userCalcEnable.VAL')
@@ -94,12 +96,26 @@ class PmacEigerFlyer(Device):
         self.stage_sigs['cam_SaveFiles'] = 1
         self.stage_sigs['cam_FW_auto_rm'] = 1 
 
+    def stage(self):
+        super().stage()
+        print('Flyer staged.')
+ 
+    def unstage(self):
+        super().unstage()
+
+        self.monitor.unsubscribe(self.monitor_cb_index)
+
+        print('Flyer unstaged.')
+
+
     def kickoff(self):
             """
             Start this Flyer
             """
 #           logger.info("kickoff()")
             self.complete_status = DeviceStatus(self)
+
+            self.start_time = time.time()
 
             #trigger system
             #self.busy.put(BusyStatus.busy) -- from example
@@ -120,7 +136,7 @@ class PmacEigerFlyer(Device):
                         self.complete_status._finished(success=True)
                         self.cam_acquire.put(0)
 
-            self.monitor.subscribe(cb)
+            self.monitor_cb_index = self.monitor.subscribe(cb)
 #            self.cam_acquire.subscribe(cb)
 
             # set kickoff status to done
@@ -132,29 +148,57 @@ class PmacEigerFlyer(Device):
         """
         Wait for flying to be complete
         """
-#        logger.info("complete(): " + str(self.complete_status))
+        logger.info("complete(): " + str(self.complete_status))
         return self.complete_status
 
     def describe_collect(self):
         """
         Describe details for ``collect()`` method
         """
-#        logger.info("describe_collect()")
-        schema = {}
-        # TODO: What will be returned?
-        return {self.name: schema}
+        logger.info("describe_collect()")
+        return {
+            self.name: dict(
+                ifly_xArr = dict(
+                    source = self.positions.pvname,
+                    dtype = "number",
+                    shape = (1,)
+                ),
+                ifly_tArr = dict(
+                    source = self.times.pvname,
+                    dtype = "number",
+                    shape = (1,)
+                )
+            )
+        }
 
     def collect(self):
         """
         Start this Flyer
         """
-        # logger.info("collect(): " + str(self.complete_status))
+        print("Storing data")
+        logger.info("collect(): " + str(self.complete_status))
+        
+        self.end_time = time.time()
+        
         self.cam_acquire.put(0)
         self.complete_status = None
-        # TODO: What will be yielded?
-        d = {'time' : [0], 'timestamps' : [0], 'data': [0]}
-
-        yield d
+        # only data being stored is start and end times of each flyscan
+        t = [0,self.end_time-self.start_time]
+        x = [0,self.cam_num_images.value]
+        
+        for i in range(2):
+            d = dict(
+                time=self.start_time + t[i],
+                data=dict(
+                    ifly_tArr = t[i],
+                    ifly_xArr = x[i],
+                ),
+                timestamps=dict(
+                    ifly_tArr = t[i],
+                    ifly_xArr = t[i],
+                )
+            )
+            yield d
 
 
 
